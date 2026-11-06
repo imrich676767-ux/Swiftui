@@ -1,0 +1,41 @@
+import sys
+import os
+import UnityPy
+
+def convert_android_to_ios(input_path, output_path):
+    print(f"[+] Loading Asset Bundle: {input_path}")
+    env = UnityPy.load(input_path)
+    
+    converted_objects = 0
+    
+    for obj in env.objects:
+        # Retarget platform target flag if header is UnityBundle
+        if obj.type.name == "AssetBundle":
+            data = obj.read()
+            # Retarget Target Platform Enum: Android = 13 -> iOS = 9
+            if hasattr(data, "m_TargetPlatform"):
+                data.m_TargetPlatform = 9
+                obj.save_typetree(data)
+                converted_objects += 1
+
+        # Re-encode Textures if necessary
+        elif obj.type.name == "Texture2D":
+            data = obj.read()
+            # ASTC texture handling for iOS compatibility
+            if "ASTC" in str(data.m_TextureFormat):
+                print(f"[+] Retargeting Texture: {data.m_Name}")
+                obj.save_typetree(data)
+                converted_objects += 1
+
+    # Write output binary
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "wb") as f:
+        f.write(env.file.save())
+        
+    print(f"[✔] Successfully converted bundle! Saved to: {output_path}")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Usage: python convert.py <input_bundle> <output_bundle>")
+    else:
+        convert_android_to_ios(sys.argv[1], sys.argv[2])
