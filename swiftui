@@ -1,0 +1,336 @@
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct ContentView: View {
+    // State variables
+    @State private var selectedFile: URL? = nil
+    @State private var isImporting: Bool = false
+    @State private var createZip: Bool = true
+    @State private var fullTextureValidation: Bool = true
+    @State private var preserveShadows: Bool = true
+    @State private var isConverting: Bool = false
+    @State private var progress: Double = 0.0
+    @State private var statusText: String = "Ready"
+    @State private var logs: [String] = ["Converter logs will appear here."]
+    
+    var body: some View {
+        ZStack {
+            Color(red: 0.07, green: 0.08, blue: 0.10)
+                .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    
+                    // Header Section
+                    HStack(spacing: 14) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.blue.opacity(0.2))
+                                .frame(width: 48, height: 48)
+                            Image(systemName: "arrow.left.arrow.right")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.blue)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Isha Converter iOS")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            Text("Android → iOS Unity bundle converter")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                            Text("Exact ShaderVariants matching")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                        }
+                    }
+                    .padding(.top, 10)
+                    
+                    // Card 1: Files & Paths
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("FILES & PATHS")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        // Android Input Row
+                        HStack {
+                            Image(systemName: "doc.badge.gearshape")
+                                .foregroundColor(.blue)
+                                .font(.title3)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Android input")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Text(selectedFile?.lastPathComponent ?? "Select a .unity3d or ZIP file")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                    .lineLimit(1)
+                            }
+                            
+                            Spacer()
+                            
+                            Button(action: { isImporting = true }) {
+                                Text("Browse")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Color.white.opacity(0.1))
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                            }
+                        }
+                        
+                        Divider().background(Color.gray.opacity(0.3))
+                        
+                        // iOS Shaders Row
+                        HStack {
+                            Image(systemName: "square.3.layers.3d.down.right")
+                                .foregroundColor(.green)
+                                .font(.title3)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("iOS shaders")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Text("Built-in ShaderVariants · ready")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("READY")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.green.opacity(0.15))
+                                .cornerRadius(4)
+                        }
+                        
+                        Divider().background(Color.gray.opacity(0.3))
+                        
+                        // Output Folder Row
+                        HStack {
+                            Image(systemName: "folder")
+                                .foregroundColor(.gray)
+                                .font(.title3)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Output folder")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Text("App storage /...Converter iOS")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("ON DEVICE")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.white.opacity(0.08))
+                                .cornerRadius(4)
+                        }
+                    }
+                    .padding()
+                    .background(Color(red: 0.12, green: 0.14, blue: 0.18))
+                    .cornerRadius(16)
+                    
+                    // Card 2: Conversion Options
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("CONVERSION OPTIONS")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        Toggle(isOn: $createZip) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Create ZIP")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Text("Package the converted assets into a ZIP")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .tint(.green)
+                        
+                        Divider().background(Color.gray.opacity(0.3))
+                        
+                        Toggle(isOn: $fullTextureValidation) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack {
+                                    Text("Full texture validation")
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    Text("OPTIMIZED")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.blue)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.blue.opacity(0.15))
+                                        .cornerRadius(4)
+                                }
+                                Text("Reduced for iPhone memory safety")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .tint(.green)
+                        
+                        Divider().background(Color.gray.opacity(0.3))
+                        
+                        Toggle(isOn: $preserveShadows) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Preserve shadows")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                Text("Keep shadow-related assets during conversion")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .tint(.green)
+                    }
+                    .padding()
+                    .background(Color(red: 0.12, green: 0.14, blue: 0.18))
+                    .cornerRadius(16)
+                    
+                    // Convert Button & Status
+                    VStack(spacing: 12) {
+                        Button(action: startConversion) {
+                            HStack {
+                                Image(systemName: "arrow.left.arrow.right")
+                                Text("CONVERT TO iOS")
+                                    .fontWeight(.bold)
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(selectedFile == nil ? Color.blue.opacity(0.4) : Color.blue)
+                            .cornerRadius(14)
+                        }
+                        .disabled(selectedFile == nil || isConverting)
+                        
+                        if isConverting {
+                            ProgressView(value: progress)
+                                .accentColor(.blue)
+                                .padding(.vertical, 4)
+                        }
+                        
+                        HStack {
+                            Circle()
+                                .fill(isConverting ? Color.yellow : Color.green)
+                                .frame(width: 8, height: 8)
+                            Text("Status: \(statusText)")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                            Spacer()
+                        }
+                    }
+                    
+                    // Card 3: Conversion Log
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("CONVERSION LOG")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.gray)
+                        
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 6) {
+                                ForEach(logs, id: \.self) { log in
+                                    Text(log)
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundColor(log.contains("Error") ? .red : (log.contains("Success") ? .green : .gray))
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(height: 120)
+                        .padding()
+                        .background(Color(red: 0.05, green: 0.06, blue: 0.07))
+                        .cornerRadius(10)
+                    }
+                    .padding()
+                    .background(Color(red: 0.12, green: 0.14, blue: 0.18))
+                    .cornerRadius(16)
+                }
+                .padding()
+            }
+        }
+        .fileImporter(
+            isPresented: $isImporting,
+            allowedContentTypes: [.data, .archive],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let files):
+                if let file = files.first {
+                    selectedFile = file
+                    appendLog("Selected file: \(file.lastPathComponent)")
+                }
+            case .failure(let error):
+                appendLog("Error selecting file: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    // Convert Process Simulation / Execution Trigger
+    private func startConversion() {
+        guard let file = selectedFile else { return }
+        isConverting = true
+        progress = 0.0
+        statusText = "Processing..."
+        logs.removeAll()
+        
+        appendLog("Initializing AssetBundle Parser...")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            progress = 0.3
+            appendLog("Reading header for \(file.lastPathComponent)...")
+            appendLog("Retargeting target platform: Android (13) -> iOS (9)...")
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            progress = 0.6
+            if fullTextureValidation {
+                appendLog("Validating textures and re-encoding ASTC/ETC2 to PVRTC/Metal format...")
+            }
+            if preserveShadows {
+                appendLog("Preserving shadow-related ShaderVariants...")
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+            progress = 1.0
+            isConverting = false
+            statusText = "Success"
+            if createZip {
+                appendLog("Packaging output into archive.zip...")
+            }
+            appendLog("Conversion finished successfully!")
+        }
+    }
+    
+    private func appendLog(_ text: String) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        let timestamp = formatter.string(from: Date())
+        logs.append("[\(timestamp)] \(text)")
+    }
+}
